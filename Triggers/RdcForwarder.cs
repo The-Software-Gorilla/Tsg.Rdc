@@ -53,11 +53,11 @@ public class RdcForwarder
         }
         
         // Deserialize XML to SoapEnvelope
-        var serializer = new XmlSerializer(typeof(EnsentaSoapEnvelope));
-        EnsentaSoapEnvelope envelope;
+        var serializer = new XmlSerializer(typeof(EnsentaRequestSoapEnvelope));
+        EnsentaRequestSoapEnvelope envelope;
         using (var stringReader = new StringReader(xml))
         {
-            envelope = (EnsentaSoapEnvelope)serializer.Deserialize(stringReader);
+            envelope = (EnsentaRequestSoapEnvelope)serializer.Deserialize(stringReader);
         }
         
         // Get the DoDepositTransaction object
