@@ -9,16 +9,16 @@ using Tsg.Models.Ensenta;
 
 namespace Tsg.Rdc.Triggers.Tests;
 
-public class DepositTransactionTester
+public class DepositTransactionTesterJson
 {
     private readonly ILogger<DepositTransaction> _logger;
 
-    public DepositTransactionTester(ILogger<DepositTransaction> logger)
+    public DepositTransactionTesterJson(ILogger<DepositTransaction> logger)
     {
         _logger = logger;
     }
 
-    [Function("testDepositTransaction")]
+    [Function("testDepositTransactionJson")]
     public async Task<IActionResult> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
     {
@@ -47,6 +47,7 @@ public class DepositTransactionTester
         // Serialize object to JSON
         var json = JsonSerializer.Serialize(depositTransaction, new JsonSerializerOptions { WriteIndented = true });
         
+        _logger.LogInformation(json);
         // Return JSON result
         return new ContentResult
         {

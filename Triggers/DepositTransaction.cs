@@ -1,10 +1,13 @@
 using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
 using Azure.Data.Tables;
 using Azure.Storage.Queues;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Tsg.Models.Ensenta;
 
 namespace Tsg.Rdc.Triggers;
 
@@ -31,6 +34,16 @@ public class DepositTransaction
             xml = await reader.ReadToEndAsync();
         }
         _logger.LogInformation("XML length: {Len}", xml?.Length ?? 0);
+        
+        var serializer = new XmlSerializer(typeof(EnsentaRequestSoapEnvelope));
+        EnsentaRequestSoapEnvelope envelope;
+        using (var stringReader = new StringReader(xml))
+        {
+            envelope = (EnsentaRequestSoapEnvelope)serializer.Deserialize(stringReader);
+        }
+        
+        // Get the DoDepositTransaction object
+        var depositTransaction = envelope.Body.DoDepositTransaction;
 
         // Storage connection (Azurite)
         var storageConn = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
@@ -58,11 +71,52 @@ public class DepositTransaction
         await queueClient.CreateIfNotExistsAsync();
         await queueClient.SendMessageAsync(transactionId.ToString());
 
-        return new AcceptedResult(string.Empty, new
+        // Craft a response
+        var responseEnvelope = new EnsentaResponseSoapEnvelope();
+        responseEnvelope.Body = new EnsentaResponseSoapBody
         {
-            status = "accepted",
-            message = "SOAP payload received and queued for processing",
-            transactionId = transactionId
-        });
+            DoDepositTransactionResponse = new DoDepositTransactionResponse
+            {
+                DoDepositTransactionResult = new DoDepositTransactionResult
+                {
+                    ResponseDescription = "Accepted",
+                    ResponseCode = "00",
+                    TransactionId = transactionId,
+                    SystemTraceNumber = depositTransaction.ReceiptTransactionNumber,
+                    TransmitZuluDateTime = DateTime.UtcNow
+                    
+                }
+            }
+        };
+        
+        // Serialize response to XML
+        var response = ConvertToSoap(responseEnvelope);
+        
+        return new ContentResult
+        {
+            Content = response,
+            ContentType = "text/xml",
+            StatusCode = 200
+        };
     }
+    
+    private string ConvertToSoap(EnsentaResponseSoapEnvelope envelope)
+    {
+        var serializer = new XmlSerializer(typeof(EnsentaResponseSoapEnvelope));
+        string soap;
+        
+        var settings = new XmlWriterSettings
+        {
+            Encoding = new UTF8Encoding(false), // false = no BOM
+            Indent = true
+        };
+        using (var stream = new MemoryStream())
+        using (var writer = XmlWriter.Create(stream, settings))
+        {
+            serializer.Serialize(writer, envelope);
+            soap = Encoding.UTF8.GetString(stream.ToArray());
+        }
+        return soap;
+    }
+
 }
