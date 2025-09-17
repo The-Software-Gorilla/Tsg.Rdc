@@ -96,7 +96,7 @@ public class DepositTransaction
         {
             Content = response,
             ContentType = "text/xml",
-            StatusCode = 200
+            StatusCode = 202
         };
     }
     

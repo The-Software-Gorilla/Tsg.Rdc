@@ -10,11 +10,11 @@ public class RdcCallParams
     [JsonPropertyName("receiptTransactionNumber")]
     public string ReceiptTransactionNumber { get; set; }
     
-    [JsonPropertyName("codeLine")]
-    public string CodeLine { get; set; }
+    [JsonPropertyName("accountNumber")]
+    public string AccountNumber { get; set; }
     
-    [JsonPropertyName("hostHoldCode")]
-    public string HostHoldCode { get; set; }
+    [JsonPropertyName("accountSuffix")]
+    public string AccountSuffix { get; set; }
     
     [JsonPropertyName("amount")]
     public decimal Amount { get; set; }

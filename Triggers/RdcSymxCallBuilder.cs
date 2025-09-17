@@ -166,13 +166,13 @@ public class RdcSymxCallBuilder
                                     new RgUserChr
                                     {
                                         Id = 1,
-                                        Value = rdcCallParams.CodeLine
+                                        Value = rdcCallParams.AccountNumber
                                     },
 
                                     new RgUserChr
                                     {
                                         Id = 2,
-                                        Value = rdcCallParams.HostHoldCode
+                                        Value = rdcCallParams.AccountSuffix
                                     },
 
                                     new RgUserChr

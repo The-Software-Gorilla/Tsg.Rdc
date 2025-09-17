@@ -70,8 +70,8 @@ public class RdcForwarder
             TransactionId = transactionId,
             ReceiptTransactionNumber = depositTransaction.ReceiptTransactionNumber,
             DepositItemCount = depositTransaction.DepositItems.Count,
-            CodeLine = null,
-            HostHoldCode = null,
+            AccountNumber = depositTransaction.AccountHolderNumber,
+            AccountSuffix = depositTransaction.AcctSuffix.ToUpper().Replace("S",""),
             Amount = 0m
         };
         foreach (var di in depositTransaction.DepositItems)
@@ -79,8 +79,6 @@ public class RdcForwarder
             _logger.LogInformation(" - Item: HoldCode={Code}, CodeLine={CodeLine}, Amount={Amount}",
                 di.HostHoldCode, di.CodeLine, di.Amount);
             if (decimal.TryParse(di.Amount, out var amt)) rg.Amount += amt;
-            if (rg.HostHoldCode == null) rg.HostHoldCode = di.HostHoldCode;
-            if (rg.CodeLine == null) rg.CodeLine = di.CodeLine;
         }
         string rgUserNum1 = (rg.Amount * 100).ToString("F0");
         _logger.LogInformation(" - Total deposit amount: {Total:C2}, RGUserNum1={RgUserNum1}, Item Count = {ItemCount}", 
